@@ -1,0 +1,10 @@
+<!doctype html>
+<title>TrollBUFR</title>
+<h1>Decode BUFR with TrollBUFR</h1>
+<form action="{{ url_for('decode') }}" method="POST" enctype="multipart/form-data">
+Upload BUFR file:
+<input type="file" name="the_file" maxlength="10000"/>
+<p>
+<input type="submit" name="decode" value="Decode to JSON"><br/>
+<input type="submit" name="decode" value="Decode readable">
+</form>
