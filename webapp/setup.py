@@ -22,13 +22,13 @@
 """
 from setuptools import setup
 
-setup(name="flask_bufr",
+setup(name="trollbufr_flask",
       version="0.1",
       description="Simple online BUFR decoder",
       author="Alexander Maul",
       author_email="alexander.maul@dwd.de",
-      packages=["flaskit"],
-      package_data={"flaskit": ["*.html"]},
+      packages=["trollbufr_flask"],
+      package_data={"trollbufr_flask": ["*.html"]},
       include_package_data=True,
       python_requires=">=2.6, <3",
       )
