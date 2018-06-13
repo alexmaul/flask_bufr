@@ -1,9 +1,14 @@
 from __future__ import print_function
+import os.path
 from trollbufr import bufr, load_file
 from flask import Flask, request, url_for, render_template, redirect, Markup
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 50000
+
+
+BUFR_TABLES_TYPE = "libdwd"
+BUFR_TABLES_DIR = os.path.join(os.path.dirname(__file__), "tables")
 
 
 @app.route('/')
@@ -31,30 +36,39 @@ def decode(typ=None):
 
 def json(data):
     from flask import jsonify
-    bufr_obj = bufr.Bufr("libdwd", "tables")
+    bufr_obj = bufr.Bufr(BUFR_TABLES_TYPE, BUFR_TABLES_DIR)
     decoded_list = []
-    for blob_obj, _, header in load_file.next_bufr(bin_data=data):
-        json_obj = bufr_obj.decode(blob_obj, as_array=True)
-        json_dict = {"heading": header,
-                     "index": len(decoded_list),
-                     "bufr": json_obj
-                     }
-        decoded_list.append(json_dict)
+    try:
+        for blob_obj, _, header in load_file.next_bufr(bin_data=data):
+            json_dict = {"heading": header,
+                         "index": len(decoded_list)}
+            try:
+                json_obj = bufr_obj.decode(blob_obj, as_array=True)
+                json_dict["bufr"] = json_obj
+            except StandardError as e:
+                json_dict["error"] = str(e)
+            decoded_list.append(json_dict)
+    except Warning or StandardError as broke:
+        decoded_list.append({"index": len(decoded_list),
+                             "error": broke.__str__()})
     return jsonify(decoded_list)
 
 
 def human(data):
     decoded_list = []
     decoded_ahl = []
-    idx=1
-    for blob_obj, _, header in load_file.next_bufr(bin_data=data):
-        head = header or str(idx)
-        idx+=1
-        decoded_ahl.append(head)
-        decoded_list.extend(("<h3><a name='", head, "'>BUFR #", head, "</a></h3>"))
-        decoded_list.append("<pre>")
-        decoded_list.append(pretty(blob_obj))
-        decoded_list.append("</pre>")
+    idx = 1
+    try:
+        for blob_obj, _, header in load_file.next_bufr(bin_data=data):
+            head = header or str(idx)
+            idx += 1
+            decoded_ahl.append(head)
+            decoded_list.extend(("<h3><a name='", head, "'>BUFR #", head, "</a></h3>"))
+            decoded_list.append("<pre>")
+            decoded_list.append(pretty(blob_obj))
+            decoded_list.append("</pre>")
+    except Warning or StandardError as broke:
+        decoded_list.extend(("<b>", broke.__str__(), "</b>"))
     cont_lst = ["<ul>"]
     for head in decoded_ahl:
         cont_lst.extend(("<li><a href='#", head, "'>BUFR #", head, "</a></li>"))
@@ -65,21 +79,26 @@ def human(data):
 def pretty(blob_obj):
     import StringIO
     from trollbufr.coder.bufr_types import TabBType
-    bufr_obj = bufr.Bufr("libdwd", "tables")
+    bufr_obj = bufr.Bufr(BUFR_TABLES_TYPE, BUFR_TABLES_DIR)
     fh_out = StringIO.StringIO()
     try:
         bufr_obj.decode_meta(blob_obj, load_tables=False)
         tabl = bufr_obj.load_tables()
-        print("META:\n%s" % bufr_obj.get_meta_str(), end="<br/>", file=fh_out)
+        print("META:\n%s"
+              % bufr_obj.get_meta_str(),
+              end="<br/>", file=fh_out)
         for report in bufr_obj.next_subset():
-            print("SUBSET\t#%d/%d" % report.subs_num, end="<br/>", file=fh_out)
+            print("SUBSET\t#%d/%d"
+                  % (report.subs_num[0] + 1, report.subs_num[1]),
+                  end="<br/>", file=fh_out)
             for descr_entry in report.next_data():
                 if descr_entry.mark is not None:
                     if isinstance(descr_entry.value, (list)):
                         descr_value = "".join([str(x) for x
-                                               in descr_entry.value])
+                                               in descr_entry.value
+                                               if x is not None])
                     else:
-                        descr_value = descr_entry.value
+                        descr_value = descr_entry.value or ""
                     print("  ",
                           descr_entry.mark,
                           descr_value,
