@@ -1,0 +1,13 @@
+<!doctype html>
+<title>TrollBUFR</title>
+<h1>Decode BUFR with TrollBUFR</h1>
+<a href="{{ url_for('index') }}">Decode another BUFR</a>
+{% if error %}
+    <p>
+    <b>BUFR couldn't be decoded.</b><br/>
+    {{ error }}
+{% endif %}
+{% if decoded %}
+    <p>
+    {{ decoded }}
+{% endif %}
