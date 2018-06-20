@@ -4,7 +4,7 @@ from trollbufr import bufr, load_file
 from flask import Flask, request, url_for, render_template, redirect, Markup
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 50000
+#app.config['MAX_CONTENT_LENGTH'] = 50000
 
 
 BUFR_TABLES_TYPE = "libdwd"
@@ -60,10 +60,10 @@ def human(data):
     idx = 1
     try:
         for blob_obj, _, header in load_file.next_bufr(bin_data=data):
-            head = header or str(idx)
+            head = header or "BUFR #%s" % str(idx)
             idx += 1
             decoded_ahl.append(head)
-            decoded_list.extend(("<h3><a name='", head, "'>BUFR #", head, "</a></h3>"))
+            decoded_list.extend(("<h3><a name='", head, "'>", head, "</a></h3>"))
             decoded_list.append("<pre>")
             decoded_list.append(pretty(blob_obj))
             decoded_list.append("</pre>")
