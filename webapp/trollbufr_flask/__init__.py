@@ -149,5 +149,9 @@ def pretty(blob_obj):
     return out_text
 
 
+def run():
+    app.run()
+
+
 if __name__ == "__main__":
     app.run()
