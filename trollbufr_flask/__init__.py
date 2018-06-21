@@ -41,15 +41,23 @@ def json(data):
     try:
         for blob_obj, _, header in load_file.next_bufr(bin_data=data):
             json_dict = {"heading": header,
-                         "index": len(decoded_list)}
+                         "index": len(decoded_list),
+                         "status": False,
+                         "error": None,
+                         "bufr": None,
+                         }
             try:
                 json_obj = bufr_obj.decode(blob_obj, as_array=True)
                 json_dict["bufr"] = json_obj
+                json_dict["status"] = True
             except StandardError as e:
                 json_dict["error"] = str(e)
             decoded_list.append(json_dict)
     except Warning or StandardError as broke:
         decoded_list.append({"index": len(decoded_list),
+                             "status": False,
+                             "bufr": None,
+                             "heading": None,
                              "error": broke.__str__()})
     return jsonify(decoded_list)
 
