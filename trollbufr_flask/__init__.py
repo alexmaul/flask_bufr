@@ -27,14 +27,16 @@ def decode(typ=None):
         else:
             how = request.form["decode"]
         if "JSON" in how or "json" in how:
-            return json(data)
+            return json(data, full=True)
+        elif "status" in how:
+            return json(data, full=False)
         else:
             return render_template("result.html", decoded=human(data))
     else:
         return redirect(url_for("index"))
 
 
-def json(data):
+def json(data, full=True):
     from flask import jsonify
     bufr_obj = bufr.Bufr(BUFR_TABLES_TYPE, BUFR_TABLES_DIR)
     decoded_list = []
@@ -48,7 +50,8 @@ def json(data):
                          }
             try:
                 json_obj = bufr_obj.decode(blob_obj, as_array=True)
-                json_dict["bufr"] = json_obj
+                if full:
+                    json_dict["bufr"] = json_obj
                 json_dict["status"] = True
             except StandardError as e:
                 json_dict["error"] = str(e)
