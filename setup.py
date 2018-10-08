@@ -28,7 +28,11 @@ setup(name="trollbufr_flask",
       author="Alexander Maul",
       author_email="alexander.maul@dwd.de",
       packages=["trollbufr_flask"],
-      package_data={"trollbufr_flask": ["templates/*.html", "tables/*", "tables/local_*/*"]},
+      package_data={"trollbufr_flask": ["templates/*.html",
+                                        "tables/*_???",
+                                        "tables/*.table",
+                                        "tables/local_*/*"
+                                        ]},
       include_package_data=True,
       python_requires=">=2.6, <3",
       )
