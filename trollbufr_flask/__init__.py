@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os.path
+import urllib2
 from trollbufr import bufr, load_file
 from flask import Flask, request, url_for, render_template, redirect, Markup
 
@@ -20,8 +21,13 @@ def index():
 @app.route('/decode/<typ>', methods=['GET', 'POST'])
 def decode(typ=None):
     if request.method == 'POST':
-        fobj = request.files['the_file']
-        data = fobj.stream.read()
+        if request.form["the_url"]:
+            furl=urllib2.urlopen(request.form["the_url"])
+            data =furl.read()
+            furl.close()
+        else:
+            fobj = request.files['the_file']
+            data = fobj.stream.read()
         if typ is not None:
             how = typ
         else:
